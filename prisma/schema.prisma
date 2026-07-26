@@ -38,6 +38,11 @@ model LinearTeam {
     doneStateId     String
     toDoStateId     String
 
+    /// Comma-separated label name prefixes to exclude from GitHub sync.
+    /// Labels whose names start with any of these prefixes will not be
+    /// synced to GitHub. Useful for customer-specific or internal labels.
+    labelExclusionPrefixes String[] @default([])
+
     Sync Sync[]
 
     SyncedIssue SyncedIssue[]

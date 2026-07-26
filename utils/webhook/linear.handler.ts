@@ -89,7 +89,7 @@ export async function linearWebhookHandler(
         githubApiKey,
         githubUserId,
         githubApiKeyIV,
-        LinearTeam: { publicLabelId, doneStateId, canceledStateId },
+        LinearTeam: { publicLabelId, doneStateId, canceledStateId, labelExclusionPrefixes },
         GitHubRepo: { repoName: repoFullName, repoId }
     } = sync;
 
@@ -193,6 +193,16 @@ export async function linearWebhookHandler(
                         `Could not find label ${addedLabelId}.`,
                         403
                     );
+                }
+
+                // Skip labels matching any of the configured exclusion prefixes
+                const isExcluded = labelExclusionPrefixes?.some(prefix =>
+                    label.name.startsWith(prefix)
+                );
+                if (isExcluded) {
+                    const reason = `Skipping label "${label.name}": matches an exclusion prefix.`;
+                    console.log(reason);
+                    return reason;
                 }
 
                 const { createdLabel, error: createLabelError } =
@@ -341,6 +351,17 @@ export async function linearWebhookHandler(
                 if (!label) {
                     console.log(
                         `Could not find label ${labelId} for ${ticketName}.`
+                    );
+                    continue;
+                }
+
+                // Skip labels matching any of the configured exclusion prefixes
+                const isExcluded = labelExclusionPrefixes?.some(prefix =>
+                    label.name.startsWith(prefix)
+                );
+                if (isExcluded) {
+                    console.log(
+                        `Skipping label "${label.name}": matches an exclusion prefix.`
                     );
                     continue;
                 }
